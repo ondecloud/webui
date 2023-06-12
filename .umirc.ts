@@ -1,4 +1,7 @@
 import { defineConfig } from '@umijs/max';
+import dev_proxy from './config/dev_proxy';
+
+const { REACT_APP_ENV = 'dev' } = process.env;
 
 export default defineConfig({
   antd: {},
@@ -12,6 +15,7 @@ export default defineConfig({
   hash: true,
   // exportStatic: {
   // },
+  proxy: dev_proxy[REACT_APP_ENV as keyof typeof dev_proxy],
   routes: [
     {
       path: '/',
