@@ -20,5 +20,6 @@ export async function requestDownloadList(
   return {
     data: data?.list || [],
     success,
+    total: data?.total || 0,
   };
 }

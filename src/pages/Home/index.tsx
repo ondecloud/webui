@@ -6,10 +6,10 @@ import {
   ActionType,
   FooterToolbar,
   PageContainer,
-  ProDescriptionsItemProps,
+  ProColumns,
   ProTable,
 } from '@ant-design/pro-components';
-import { Button, message } from 'antd';
+import { Button, Drawer, message } from 'antd';
 import React, { useRef, useState } from 'react';
 
 /**
@@ -55,11 +55,41 @@ const HomePage: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [createModalVisible, handleModalVisible] = useState<boolean>(false);
   const [selectedRowsState, setSelectedRows] = useState<API.DownloadInfo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [rows, setRows] = useState<API.DownloadInfo[]>([]);
+  const tabList = [
+    {
+      tab: '全部',
+      key: 'all',
+      closable: false,
+    },
+    {
+      tab: '下载中',
+      key: 'downloading',
+      closable: false,
+    },
+    {
+      tab: '已完成',
+      key: 'finished',
+      closable: false,
+    },
+  ];
 
-  const columns: ProDescriptionsItemProps<API.DownloadInfo>[] = [
+  // const [data, success] = useSelector(requestDownloadList);
+  function getDownloadList() {
+    setLoading(true);
+    return requestDownloadList([]).then((res) => {
+      setRows(res.data);
+      setLoading(false);
+      return res;
+    });
+  }
+
+  const columns: ProColumns<API.DownloadInfo>[] = [
     {
       title: 'ID',
       dataIndex: 'id',
+      className: 'id',
       hideInSearch: true,
       tip: '名称是唯一的 key',
       formItemProps: {
@@ -70,16 +100,18 @@ const HomePage: React.FC = () => {
           },
         ],
       },
+      width: 80,
     },
+    // {
+    //   title: 'URL',
+    //   dataIndex: 'url',
+    //   hideInSearch: true,
+    //   valueType: 'text',
+    // },
     {
-      title: 'URL',
-      dataIndex: 'url',
-      hideInSearch: true,
-      valueType: 'text',
-    },
-    {
-      title: 'FileName',
-      dataIndex: 'filename',
+      title: '文件名',
+      dataIndex: 'file_name',
+      className: 'file_name',
       // hideInForm: true,
       valueType: 'text',
       // valueEnum: {
@@ -88,10 +120,27 @@ const HomePage: React.FC = () => {
       // },
     },
   ];
-
+  console.log(selectedRowsState);
   return (
+    // <ProCard
+    //   title="左右分栏带标题"
+    //   extra="2019年9月28日"
+    //   split={'vertical'} //: 'vertical'
+    //   bordered
+    //   headerBordered
+    // >
+    //   <ProCard title="左侧详情" colSpan="50%">
     <PageContainer
       ghost
+      // style={{ ...style }}
+      tabList={tabList}
+      // style={{ height: '100%' }}
+      // footer={[
+      //   <Button key="3">重置</Button>,
+      //   <Button key="2" type="primary">
+      //     提交
+      //   </Button>,
+      // ]}
       title={
         <a href={'/setting'} style={{ fontSize: '120%' }}>
           <SettingFilled> </SettingFilled>
@@ -103,10 +152,14 @@ const HomePage: React.FC = () => {
         headerTitle="下载列表"
         actionRef={actionRef}
         rowKey="id"
-        loading={false}
+        loading={loading}
         search={{
           labelWidth: 120,
         }}
+        tableAlertRender={false}
+        // style={{ height: '100%' }}
+        dataSource={rows}
+        // scroll={{ y: 'calc(100vh - 400px)' }}
         toolBarRender={() => [
           <Button
             key="1"
@@ -116,12 +169,13 @@ const HomePage: React.FC = () => {
             新建下载
           </Button>,
         ]}
-        request={requestDownloadList}
+        request={getDownloadList}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => setSelectedRows(selectedRows),
         }}
       />
+
       <CreateForm
         onCancel={() => handleModalVisible(false)}
         modalVisible={createModalVisible}
@@ -163,6 +217,21 @@ const HomePage: React.FC = () => {
           <Button type="primary">批量审批</Button>
         </FooterToolbar>
       )}
+      <Drawer
+        width={600}
+        open={selectedRowsState.length === 1}
+        onClose={() => {
+          setSelectedRows([]);
+        }}
+        closable={true}
+      >
+        <PageContainer
+          title={
+            selectedRowsState.length === 1 ? selectedRowsState[0].file_name : []
+          }
+        ></PageContainer>
+        <span>show info </span>
+      </Drawer>
     </PageContainer>
   );
 };

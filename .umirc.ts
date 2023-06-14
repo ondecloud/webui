@@ -12,6 +12,7 @@ export default defineConfig({
   layout: {
     title: 'Across Download',
   },
+  locale: {},
   hash: true,
   // exportStatic: {
   // },
@@ -27,6 +28,7 @@ export default defineConfig({
       hideInMenu: true,
       component: '@/pages/Home',
       menuRender: false,
+      footer: false,
     },
     {
       name: '设置',
