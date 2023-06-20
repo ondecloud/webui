@@ -1,3 +1,4 @@
+import StateInfoDrawer from '@/pages/Home/components/StateInfoDrawer';
 import { requestDownloadList } from '@/pages/Home/service';
 import CreateForm from '@/pages/Table/components/CreateForm';
 import { addDownload, deleteDownload } from '@/services/DownloadController';
@@ -7,6 +8,7 @@ import {
   FooterToolbar,
   PageContainer,
   ProColumns,
+  ProDescriptions,
   ProTable,
 } from '@ant-design/pro-components';
 import { Button, Drawer, message } from 'antd';
@@ -74,6 +76,18 @@ const HomePage: React.FC = () => {
       closable: false,
     },
   ];
+  const detailList = [
+    {
+      tab: '文件',
+      key: 'file',
+      closable: false,
+    },
+    {
+      tab: '详细信息',
+      key: 'detail',
+      closable: false,
+    },
+  ];
 
   // const [data, success] = useSelector(requestDownloadList);
   function getDownloadList() {
@@ -119,6 +133,25 @@ const HomePage: React.FC = () => {
       //   1: { text: '女', status: 'FEMALE' },
       // },
     },
+    {
+      title: '进度',
+      dataIndex: 'progress',
+      className: 'progress',
+      width: 120,
+      valueType: 'text',
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      className: 'status',
+      width: 80,
+      // hideInForm: true,
+      valueType: 'text',
+      // valueEnum: {
+      //   0: { text: '男', status: 'MALE' },
+      //   1: { text: '女', status: 'FEMALE' },
+      // },
+    },
   ];
   console.log(selectedRowsState);
   return (
@@ -142,7 +175,7 @@ const HomePage: React.FC = () => {
       //   </Button>,
       // ]}
       title={
-        <a href={'/setting'} style={{ fontSize: '120%' }}>
+        <a href={'/setting'}>
           <SettingFilled> </SettingFilled>
           <span>设置</span>
         </a>
@@ -195,6 +228,46 @@ const HomePage: React.FC = () => {
           columns={columns}
         />
       </CreateForm>
+      {/*{selectedRowsState?.length > 0 && (*/}
+      <StateInfoDrawer
+        width={600}
+        open={selectedRowsState.length === 1}
+        onClose={() => {
+          setSelectedRows([]);
+        }}
+        closable={true}
+        data={selectedRowsState[0]}
+        tabList={detailList}
+        title={selectedRowsState[0].file_name}
+      />
+      <Drawer
+        width={600}
+        open={selectedRowsState.length === 1}
+        onClose={() => {
+          setSelectedRows([]);
+        }}
+        closable={true}
+      >
+        {selectedRowsState?.length === 1 && (
+          <PageContainer
+            tabList={detailList}
+            title={
+              selectedRowsState.length === 1
+                ? selectedRowsState[0].file_name
+                : []
+            }
+          >
+            <ProDescriptions<API.DownloadInfo>
+              column={2}
+              title={selectedRowsState[0].file_name}
+              request={async () => ({
+                data: selectedRowsState[0],
+              })}
+            />
+          </PageContainer>
+        )}
+      </Drawer>
+
       {selectedRowsState?.length > 0 && (
         <FooterToolbar
           extra={
@@ -217,21 +290,6 @@ const HomePage: React.FC = () => {
           <Button type="primary">批量审批</Button>
         </FooterToolbar>
       )}
-      <Drawer
-        width={600}
-        open={selectedRowsState.length === 1}
-        onClose={() => {
-          setSelectedRows([]);
-        }}
-        closable={true}
-      >
-        <PageContainer
-          title={
-            selectedRowsState.length === 1 ? selectedRowsState[0].file_name : []
-          }
-        ></PageContainer>
-        <span>show info </span>
-      </Drawer>
     </PageContainer>
   );
 };
