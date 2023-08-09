@@ -12,7 +12,12 @@ export default defineConfig({
   layout: {
     title: 'Across Download',
   },
-  locale: {},
+  locale: {
+    useLocalStorage: true,
+    default: 'en-US',
+    baseNavigator: true,
+    baseSeparator: '-',
+  },
   hash: true,
   // exportStatic: {
   // },

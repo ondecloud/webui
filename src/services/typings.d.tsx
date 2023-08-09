@@ -2,14 +2,29 @@
 // 该文件由 OneAPI 自动生成，请勿手动修改！
 
 declare namespace API {
+  interface TreeNode {
+    id: number;
+    parent_id: number;
+    label: string;
+    is_selected: boolean;
+    file_size: number;
+    progress: number;
+  }
+
   interface DownloadInfo {
     id: string;
-    progress: number;
-    status: string;
+    state: number;
+    max_speed: number;
+    average_speed: number;
     start_time: string;
     file_name: string;
+    is_tree: boolean;
+    tree_list: TreeNode[];
     url: string;
-    size: number;
+    total: number;
+    selected: number;
+    file_size: number;
+    progress: number;
   }
 
   interface PageInfo {
@@ -70,6 +85,15 @@ declare namespace API {
   }
 
   interface ResourceInfoV0 {
+    FileName: string;
+    Referer: string;
+    Type: string;
+    URL: string;
+    Path: string;
+    Args: { [key: string]: Arg[] };
+  }
+
+  interface ResourceInfoV0Result {
     FileName: string;
     Referer: string;
     Type: string;

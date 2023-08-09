@@ -1,5 +1,9 @@
-import StateInfoDrawer from '@/pages/Home/components/StateInfoDrawer';
-import { requestDownloadList } from '@/pages/Home/service';
+import DownloadStateDrawer from '@/pages/Home/components/DownloadStateDrawer';
+import {
+  requestDownloadList,
+  requestDownloadStart,
+  requestDownloadStop,
+} from '@/pages/Home/service';
 import CreateForm from '@/pages/Table/components/CreateForm';
 import { addDownload, deleteDownload } from '@/services/DownloadController';
 import { SettingFilled } from '@ant-design/icons';
@@ -8,11 +12,12 @@ import {
   FooterToolbar,
   PageContainer,
   ProColumns,
-  ProDescriptions,
   ProTable,
 } from '@ant-design/pro-components';
-import { Button, Drawer, message } from 'antd';
-import React, { useRef, useState } from 'react';
+import { FormattedMessage } from '@umijs/max';
+import { Button, message } from 'antd';
+import React, { Key, useRef, useState } from 'react';
+import style from './index.less';
 
 /**
  * 添加节点
@@ -41,7 +46,7 @@ const handleRemove = async (selectedRows: API.DownloadInfo[]) => {
   if (!selectedRows) return true;
   try {
     await deleteDownload({
-      userId: selectedRows.find((row) => row.id)?.id || '',
+      id: selectedRows.find((row) => row.id)?.id || '0',
     });
     hide();
     message.success('删除成功，即将刷新');
@@ -53,10 +58,14 @@ const handleRemove = async (selectedRows: API.DownloadInfo[]) => {
   }
 };
 
+// function onRowSelect(param: any[], param2: Record<string, any>[]) {}
+
 const HomePage: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [createModalVisible, handleModalVisible] = useState<boolean>(false);
-  const [selectedRowsState, setSelectedRows] = useState<API.DownloadInfo[]>([]);
+  const [selectedRows, setSelectedRows] = useState<API.DownloadInfo[]>([]);
+  const [selectRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
+  const [downloadStateDrawer, setDownloadStateDrawer] = useState(false);
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<API.DownloadInfo[]>([]);
   const tabList = [
@@ -76,27 +85,24 @@ const HomePage: React.FC = () => {
       closable: false,
     },
   ];
-  const detailList = [
-    {
-      tab: '文件',
-      key: 'file',
-      closable: false,
-    },
-    {
-      tab: '详细信息',
-      key: 'detail',
-      closable: false,
-    },
-  ];
 
   // const [data, success] = useSelector(requestDownloadList);
-  function getDownloadList() {
+  async function getDownloadList() {
     setLoading(true);
-    return requestDownloadList([]).then((res) => {
-      setRows(res.data);
-      setLoading(false);
-      return res;
-    });
+    let res = await requestDownloadList([]);
+    setRows(res.data);
+    setLoading(false);
+    return res;
+  }
+
+  async function startDownload(id: string) {
+    let res = await requestDownloadStart(id);
+    console.log('start', id, res);
+  }
+
+  async function stopDownload(id: string) {
+    let res = await requestDownloadStop(id);
+    console.log('stop', id, res);
   }
 
   const columns: ProColumns<API.DownloadInfo>[] = [
@@ -105,75 +111,127 @@ const HomePage: React.FC = () => {
       dataIndex: 'id',
       className: 'id',
       hideInSearch: true,
-      tip: '名称是唯一的 key',
-      formItemProps: {
-        rules: [
-          {
-            required: true,
-            message: '名称为必填项',
-          },
-        ],
-      },
-      width: 80,
+      hideInForm: true,
+      hideInTable: true,
     },
-    // {
-    //   title: 'URL',
-    //   dataIndex: 'url',
-    //   hideInSearch: true,
-    //   valueType: 'text',
-    // },
     {
-      title: '文件名',
+      title: <FormattedMessage id="home.fileName" />,
       dataIndex: 'file_name',
       className: 'file_name',
-      // hideInForm: true,
       valueType: 'text',
-      // valueEnum: {
-      //   0: { text: '男', status: 'MALE' },
-      //   1: { text: '女', status: 'FEMALE' },
-      // },
     },
     {
-      title: '进度',
+      title: <FormattedMessage id="home.progress" />,
       dataIndex: 'progress',
       className: 'progress',
       width: 120,
       valueType: 'text',
+      renderText: (_, record: API.DownloadInfo) => {
+        if (!record.progress) return '0%';
+        return record.progress + '%';
+      },
     },
     {
-      title: '状态',
+      title: <FormattedMessage id="home.status" />,
       dataIndex: 'status',
       className: 'status',
       width: 80,
       // hideInForm: true,
       valueType: 'text',
+      renderText: (text: any, record: API.DownloadInfo) => {
+        console.log('renderText', text, record);
+        switch (record.state) {
+          case 0:
+            return (
+              <Button type={'primary'} onClick={() => startDownload(record.id)}>
+                <FormattedMessage id="download.start" />
+              </Button>
+            );
+          case 1:
+            return (
+              <Button type={'primary'} onClick={() => stopDownload(record.id)}>
+                <FormattedMessage id="download.stop" />
+              </Button>
+            );
+          case 2:
+            return (
+              <Button type={'primary'} onClick={() => stopDownload(record.id)}>
+                <FormattedMessage id="download.restart" />
+              </Button>
+            );
+        }
+      },
       // valueEnum: {
       //   0: { text: '男', status: 'MALE' },
       //   1: { text: '女', status: 'FEMALE' },
       // },
     },
   ];
-  console.log(selectedRowsState);
+
+  const addColumns: ProColumns<API.ResourceInfoV0>[] = [
+    // {
+    //   title: <FormattedMessage id="download.customName" />,
+    //   dataIndex: 'file_name',
+    //   className: 'file_name',
+    //   valueType: 'text',
+    // },
+    {
+      title: <FormattedMessage id="download.fileName" />,
+      dataIndex: 'file_name',
+      className: 'file_name',
+      valueType: 'text',
+      editable: false,
+    },
+    {
+      title: <FormattedMessage id="download.type" />,
+      dataIndex: 'type',
+      className: 'type',
+      valueType: 'select',
+      valueEnum: {
+        http: {
+          text: <FormattedMessage id="download.type.http" />,
+          status: 'http',
+        },
+        ftp: {
+          text: <FormattedMessage id="download.type.ftp" />,
+          status: 'ftp',
+        },
+      },
+    },
+    {
+      title: <FormattedMessage id="download.url" />,
+      dataIndex: 'url',
+      className: 'url',
+      // width: 80,
+      valueType: 'text',
+    },
+  ];
+
+  function onRowSelect(record: API.DownloadInfo, index: Key, event: any) {
+    // console.log(index, record, event);
+    setSelectedRows(selectedRows.concat(record));
+    setSelectedRowKeys(selectRowKeys.concat(index));
+    setDownloadStateDrawer(true);
+    event.stopPropagation(); //阻止默认事件
+  }
+
+  console.log(selectedRows);
+
   return (
-    // <ProCard
-    //   title="左右分栏带标题"
-    //   extra="2019年9月28日"
-    //   split={'vertical'} //: 'vertical'
-    //   bordered
-    //   headerBordered
-    // >
-    //   <ProCard title="左侧详情" colSpan="50%">
     <PageContainer
+      className={style.pageContainer}
       ghost
-      // style={{ ...style }}
       tabList={tabList}
-      // style={{ height: '100%' }}
-      // footer={[
-      //   <Button key="3">重置</Button>,
-      //   <Button key="2" type="primary">
-      //     提交
-      //   </Button>,
-      // ]}
+      header={{
+        style: {
+          paddingBlock: 0,
+          paddingInline: 15,
+        },
+      }}
+      childrenContentStyle={{
+        paddingBlock: 0,
+        paddingInline: 15,
+      }}
       title={
         <a href={'/setting'}>
           <SettingFilled> </SettingFilled>
@@ -182,12 +240,25 @@ const HomePage: React.FC = () => {
       }
     >
       <ProTable<API.DownloadInfo>
+        // className="home-download-list-table"
         headerTitle="下载列表"
         actionRef={actionRef}
         rowKey="id"
         loading={loading}
-        search={{
-          labelWidth: 120,
+        // multiSelect={{
+        //   // 非受控用法 defaultValue
+        //   selectRowKeys,
+        //   setSelectRowKeys,
+        //
+        //   highlightRowWhenSelected: true,
+        //   clickArea: 'row',
+        // }}
+        search={false}
+        cardProps={{
+          bodyStyle: {
+            paddingBlock: 0,
+            paddingInline: 30,
+          },
         }}
         tableAlertRender={false}
         // style={{ height: '100%' }}
@@ -205,7 +276,26 @@ const HomePage: React.FC = () => {
         request={getDownloadList}
         columns={columns}
         rowSelection={{
-          onChange: (_, selectedRows) => setSelectedRows(selectedRows),
+          // onSelectMultiple: {
+          //   // selectRowKeys,
+          //   // setSelectRowKeys,
+          //   highlightRowWhenSelected: true,
+          //   clickArea: 'row',
+          // },
+          onChange: (selectedRowKeys, selectedRows) => {
+            setSelectedRows(selectedRows);
+            setSelectedRowKeys(selectedRowKeys);
+          },
+          selectedRowKeys: selectRowKeys,
+        }}
+        onRow={(record, key) => {
+          return {
+            onClick: (event) => {
+              if (key !== undefined) {
+                onRowSelect(record, key, event);
+              }
+            },
+          };
         }}
       />
 
@@ -213,7 +303,7 @@ const HomePage: React.FC = () => {
         onCancel={() => handleModalVisible(false)}
         modalVisible={createModalVisible}
       >
-        <ProTable<API.DownloadInfo, API.ResourceInfoV0>
+        <ProTable<API.ResourceInfoV0, API.ResourceInfoV0Result>
           onSubmit={async (value) => {
             const success = await handleAdd(value);
             if (success) {
@@ -225,69 +315,38 @@ const HomePage: React.FC = () => {
           }}
           rowKey="id"
           type="form"
-          columns={columns}
+          columns={addColumns}
         />
       </CreateForm>
       {/*{selectedRowsState?.length > 0 && (*/}
-      <StateInfoDrawer
+      <DownloadStateDrawer
         width={600}
-        open={selectedRowsState.length === 1}
+        open={downloadStateDrawer}
         onClose={() => {
-          setSelectedRows([]);
+          setDownloadStateDrawer(false);
         }}
         closable={true}
-        data={selectedRowsState[0]}
-        tabList={detailList}
-        title={selectedRowsState[0].file_name}
+        data={selectedRows[0]}
       />
-      <Drawer
-        width={600}
-        open={selectedRowsState.length === 1}
-        onClose={() => {
-          setSelectedRows([]);
-        }}
-        closable={true}
-      >
-        {selectedRowsState?.length === 1 && (
-          <PageContainer
-            tabList={detailList}
-            title={
-              selectedRowsState.length === 1
-                ? selectedRowsState[0].file_name
-                : []
-            }
-          >
-            <ProDescriptions<API.DownloadInfo>
-              column={2}
-              title={selectedRowsState[0].file_name}
-              request={async () => ({
-                data: selectedRowsState[0],
-              })}
-            />
-          </PageContainer>
-        )}
-      </Drawer>
-
-      {selectedRowsState?.length > 0 && (
+      {selectedRows?.length > 0 && (
         <FooterToolbar
           extra={
             <div>
-              已选择{' '}
-              <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
+              已选择 <a style={{ fontWeight: 600 }}>{selectedRows.length}</a>{' '}
               项&nbsp;&nbsp;
             </div>
           }
         >
           <Button
             onClick={async () => {
-              await handleRemove(selectedRowsState);
+              await handleRemove(selectedRows);
               setSelectedRows([]);
               actionRef.current?.reloadAndRest?.();
             }}
           >
-            批量删除
+            删除选择
           </Button>
-          <Button type="primary">批量审批</Button>
+          {/*<Button type="primary">批量审批</Button>*/}
         </FooterToolbar>
       )}
     </PageContainer>

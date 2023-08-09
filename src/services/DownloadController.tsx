@@ -80,14 +80,10 @@ export async function modifyUser(
 
 /** DELETE /api/v0/download/${param0} */
 export async function deleteDownload(
-  params: {
-    // path
-    /** userId */
-    userId?: string;
-  },
-  options?: { [key: string]: any },
+  params: { id: string },
+  options?: { [p: string]: any },
 ) {
-  const { userId: param0 } = params;
+  const { id: param0 } = params;
   return request<API.Result_string_>(VersionURL(`download/${param0}`), {
     method: 'DELETE',
     params: { ...params },

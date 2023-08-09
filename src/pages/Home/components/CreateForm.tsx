@@ -12,7 +12,7 @@ const CreateForm: React.FC<PropsWithChildren<CreateFormProps>> = (props) => {
   return (
     <Modal
       destroyOnClose
-      title="新建"
+      title="创建文件"
       width={420}
       open={modalVisible}
       onCancel={() => onCancel()}

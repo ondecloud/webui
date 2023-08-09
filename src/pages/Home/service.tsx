@@ -1,4 +1,5 @@
 import { queryDownloadList } from '@/services/DownloadController';
+import { request } from '@umijs/max';
 
 export async function requestDownloadList(
   params: any & {
@@ -22,4 +23,16 @@ export async function requestDownloadList(
     success,
     total: data?.total || 0,
   };
+}
+
+export async function requestDownloadStart(id: string) {
+  return request(`/api/v0/download/${id}/start`, {
+    method: 'POST',
+  });
+}
+
+export async function requestDownloadStop(id: string) {
+  return request(`/api/v0/download/${id}/stop`, {
+    method: 'POST',
+  });
 }
