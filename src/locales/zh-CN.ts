@@ -82,6 +82,7 @@ export default {
   'home.fileCreator': 'File Creator',
   'home.fileCreateTime': 'File Create Time',
   'home.fileUpdateTime': 'File Update Time',
+  'download.customFileName': '自定义文件名',
   'download.type': '类型',
   'download.type.http': 'HTTP',
   'download.type.ftp': 'FTP',

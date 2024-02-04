@@ -85,6 +85,7 @@ export default {
   'home.fileCreator': 'File Creator',
   'home.fileCreateTime': 'File Create Time',
   'home.fileUpdateTime': 'File Update Time',
+  'download.customFileName': 'Custom File Name',
   'download.type.http': 'HTTP',
   'download.type.ftp': 'FTP',
   'download.type': 'Type',

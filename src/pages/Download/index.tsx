@@ -1,9 +1,9 @@
-import DownloadStateDrawer from '@/pages/Home/components/DownloadStateDrawer';
+import DownloadStateDrawer from '@/pages/Download/components/DownloadStateDrawer';
 import {
   requestDownloadList,
   requestDownloadStart,
   requestDownloadStop,
-} from '@/pages/Home/service';
+} from '@/pages/Download/service';
 import CreateForm from '@/pages/Table/components/CreateForm';
 import { addDownload, deleteDownload } from '@/services/DownloadController';
 import { Link } from '@@/exports';
@@ -61,7 +61,7 @@ const handleRemove = async (selectedRows: API.DownloadInfo[]) => {
 
 // function onRowSelect(param: any[], param2: Record<string, any>[]) {}
 
-const HomePage: React.FC = () => {
+const DownloadPage: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [createModalVisible, handleModalVisible] = useState<boolean>(false);
   const [selectedRows, setSelectedRows] = useState<API.DownloadInfo[]>([]);
@@ -326,4 +326,4 @@ const HomePage: React.FC = () => {
   );
 };
 
-export default HomePage;
+export default DownloadPage;
